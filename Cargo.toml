@@ -1,5 +1,5 @@
 [package]
-name = "plugin_devzat_timeteller"
+name = "plugin_devzat_forth"
 version = "0.1.0"
 edition = "2021"
 build = "build.rs"
@@ -12,3 +12,4 @@ libc = "0.2.139"
 
 [build-dependencies]
 cc = "1.0.46"
+

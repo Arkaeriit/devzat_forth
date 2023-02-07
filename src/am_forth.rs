@@ -56,7 +56,7 @@ impl AMForth {
             let arg: &mut StateAndString = unsafe { &mut *(arg as *mut StateAndString) }; 
             unsafe {
                 cancellable_thread();
-               amf_parse_string(arg.parser, arg.string);
+                amf_parse_string(arg.parser, arg.string);
             }
             *PTHREAD_RUNNING.lock().unwrap() = false;
             std::ptr::null_mut()
@@ -82,6 +82,7 @@ impl AMForth {
                 libc::pthread_join(running_thread, std::ptr::null_mut());
                 //amf_clean_parser(self.parser); /* This is a memory leak but for some reason, the thread that should have been joined sometimes still write to the freed memory. This might not even be the worst abomination in this file. */
                 self.parser = amf_init_parser();
+                send_string_to_output("[ERROR] Timeout while executing forth. Resetting state\n");
             }
         } else {
             unsafe {
@@ -134,5 +135,10 @@ pub extern "C" fn amf_print_string(s: *const c_char) {
     }
     // Get copy-on-write Cow<'_, str>, then guarantee a freshly-owned String allocation
     //println!("{}", String::from_utf8_lossy(cstr.to_bytes()).to_string());
+}
+
+fn send_string_to_output(s: &str) {
+    let c_s = CString::new(s).expect("CString::new failed");
+    amf_print_string(c_s.as_ptr());
 }
 

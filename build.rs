@@ -2,11 +2,9 @@ fn main() {
     println!("cargo:rustc-link-search=.");
     println!("cargo:rustc-link-lib=amForth");
 
-    /*
-    println!("cargo:rerun-if-changed=src/set_limit.c");
+    println!("cargo:rerun-if-changed=src/cancellable_thread.c");
     cc::Build::new()
-        .file("src/set_limit.c")
-        .compile("set_limit");
-    */
+        .file("src/cancellable_thread.c")
+        .compile("cancellable_thread");
 }
 

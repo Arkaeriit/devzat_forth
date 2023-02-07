@@ -46,5 +46,5 @@ As running arbitrary code that is as low level as Forth in inherently unsafe, no
 
 ## Acknowledgment
 
-Special thanks to [Tommy](https://github.com/TommyPujol06) for the [library](https://github.com/TommyPujol06/devzat-rs) he made the library to make Devzat plugins in Rust.
+Special thanks to [Tommy](https://github.com/TommyPujol06) for the [library](https://github.com/TommyPujol06/devzat-rs) he wrote to make Devzat plugins in Rust.
 

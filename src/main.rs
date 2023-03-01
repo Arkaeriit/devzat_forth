@@ -3,6 +3,7 @@ mod am_forth;
 use devzat_rs;
 use tokio::try_join;
 use std::env;
+use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -29,6 +30,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => "Arkaeriit".to_string(),
     };
 
+    let last_action_file_str = match std::env::var("LAST_ACTION_FILE") {
+        Ok(nick) => nick,
+        Err(_) => "/tmp/devzat_forth".to_string(),
+    };
+    let last_action_file = &last_action_file_str;
+
     let client = devzat_rs::Client::new(
         instance_host,
         auth_token,
@@ -36,7 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     login_notify(&client, &get_bot_name(), "Hi! I just logged in.", &login_room, &dev_nick).await;
 
-   let forth_cmd = client.register_cmd("forth", "Execute some forth code", "<code>", |event| async move {
+    let forth_cmd = client.register_cmd("forth", "Execute some forth code", "<code>", |event| async move {
+        update_last_action(last_action_file);
         forth_state.parse_string(&event.args);
         forth_state.parse_string(" ");
         md_spaces(&forth_state.get_output())
@@ -51,7 +59,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } else if args[1] == "login-notify" {
             if args.len() > 2 {
                 println!("Good, good");
-               speak_up(&client, &args[2]).await;
+                if is_last_action_up_to_date(last_action_file) {
+                   speak_up(&client, &args[2]).await;
+                }
             } else {
                println!("Please, give login notification as arguments.");
             }
@@ -95,5 +105,29 @@ async fn speak_up(client: &devzat_rs::Client, msg: &str) {
 /// handles them well.
 fn md_spaces(s: &str) -> String {
     s.replace("\n", "  \\n")
+}
+
+/// Rewrite the last action file
+fn update_last_action(filename: &str) {
+    let _who_got_time_to_check_error = fs::remove_file(filename);
+    let _who_got_time_to_check_error = fs::OpenOptions::new().create(true).write(true).open(filename);
+}
+
+/// Tell if the last action file was updated in the last 40 seconds
+fn is_last_action_up_to_date(filename: &str) -> bool {
+    match fs::metadata(filename) {
+        Ok(meta) => {
+            match meta.modified() {
+                Ok(time) => {
+                    match time.elapsed() {
+                        Ok(elapsed) => elapsed.as_secs() < 40,
+                        Err(_) => false,
+                    }
+                },
+                Err(_) => false,
+            }
+        },
+        Err(_) => false,
+    }
 }
 

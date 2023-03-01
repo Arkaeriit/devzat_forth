@@ -26,13 +26,14 @@ The plugin can search for errors such as timeouts and stack overflows. In those 
 
 The plugin is configured with the following environment variable.
 
-|Variable name |Description                                                   |Default                                                                     |
-|--------------|--------------------------------------------------------------|----------------------------------------------------------------------------|
-|`PLUGIN_HOST` |URL of the chat-room interface                                |`https://devzat.hackclub.com:5556`                                          |
-|`PLUGIN_TOKEN`|Authentication token                                          |Does not defaults to anything. The program panics if the token is not given.|
-|`LOGIN_ROOM`  |Name of the room where the bot will tell when it is connected.|`#bots`                                                                     |
-|`DEV_NICK`    |Nickname of the user the bot will tell when it is connected   |`Arkaeriit`                                                                 |
-|`BOT_NAME`    |Name used by the bot to introduce itself.                     |`Forth`                                                                     |
+|Variable name      |Description                                                   |Default                                                                     |
+|-------------------|--------------------------------------------------------------|----------------------------------------------------------------------------|
+|`PLUGIN_HOST`      |URL of the chat-room interface                                |`https://devzat.hackclub.com:5556`                                          |
+|`PLUGIN_TOKEN`     |Authentication token                                          |Does not defaults to anything. The program panics if the token is not given.|
+|`LOGIN_ROOM`       |Name of the room where the bot will tell when it is connected.|`#bots`                                                                     |
+|`DEV_NICK`         |Nickname of the user the bot will tell when it is connected   |`Arkaeriit`                                                                 |
+|`BOT_NAME`         |Name used by the bot to introduce itself.                     |`Forth`                                                                     |
+|`LAST_ACTION_FILE` |Temporary file used for state management.                     |`/tmp/devzat_forth`                                                         |
 
 The plugin can catch stack overflows and timeouts on its own but it cannot catch segmentation faults. This is unfortunate as segmentation faults are very easy to cause in Forth (`0 @`). To minimize that issue, `launch_script.sh` can be run to restart the plugin when needed.
 

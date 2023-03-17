@@ -33,7 +33,9 @@ const POLLING_STEPS_MILLIS: u64 = 10;
 
 impl AMForth {
     pub fn init() -> AMForth {
-        return AMForth{parser: unsafe {amf_init_parser()}};
+        let mut state = AMForth{parser: unsafe {amf_init_parser()}};
+        state.parse_string(": 🥕 dup 0> if 1 swap 0 do over * loop swap drop else 2drop 1 then ;\n");
+        state
     }
 
     pub fn parse_string(&mut self, s: &str) {

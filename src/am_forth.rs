@@ -35,6 +35,7 @@ impl AMForth {
     pub fn init() -> AMForth {
         let mut state = AMForth{parser: unsafe {amf_init_parser()}};
         state.parse_string(": 🥕 dup 0> if 1 swap 0 do over * loop swap drop else 2drop 1 then ;\n");
+        state.parse_string(": :carrot: 🥕 ;\n");
         state
     }
 

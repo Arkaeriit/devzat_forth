@@ -17,23 +17,23 @@ lazy_static! {
 }
 
 extern "C" {
-    fn amf_init_parser() -> *mut c_void;
-    fn amf_parse_string(parser: *mut c_void, s: *const c_char);
-    //fn amf_clean_parser(parser: *mut c_void);
+    fn sef_init_parser() -> *mut c_void;
+    fn sef_parse_string(parser: *mut c_void, s: *const c_char);
+    //fn sef_clean_parser(parser: *mut c_void);
     fn cancellable_thread();
 }
 
 #[derive(Clone, Copy)]
-pub struct AMForth {
+pub struct SEForth {
     parser: *mut c_void,
 }
 
 const TIMEOUT_MILLIS: u64 = 10000;
 const POLLING_STEPS_MILLIS: u64 = 10;
 
-impl AMForth {
-    pub fn init() -> AMForth {
-        let mut state = AMForth{parser: unsafe {amf_init_parser()}};
+impl SEForth {
+    pub fn init() -> SEForth {
+        let mut state = SEForth{parser: unsafe {sef_init_parser()}};
         state.parse_string(": 🥕 dup 0> if 1 swap 0 do over * loop swap drop else 2drop 1 then ;\n");
         state.parse_string(": :carrot: 🥕 ;\n");
         state
@@ -59,7 +59,7 @@ impl AMForth {
             let arg: &mut StateAndString = unsafe { &mut *(arg as *mut StateAndString) }; 
             unsafe {
                 cancellable_thread();
-                amf_parse_string(arg.parser, arg.string);
+                sef_parse_string(arg.parser, arg.string);
             }
             *PTHREAD_RUNNING.lock().unwrap() = false;
             std::ptr::null_mut()
@@ -83,8 +83,8 @@ impl AMForth {
             unsafe {
                 libc::pthread_cancel(running_thread);
                 libc::pthread_join(running_thread, std::ptr::null_mut());
-                //amf_clean_parser(self.parser); /* This is a memory leak but for some reason, the thread that should have been joined sometimes still write to the freed memory. This might not even be the worst abomination in this file. */
-                self.parser = amf_init_parser();
+                //sef_clean_parser(self.parser); /* This is a memory leak but for some reason, the thread that should have been joined sometimes still write to the freed memory. This might not even be the worst abomination in this file. */
+                self.parser = sef_init_parser();
                 send_string_to_output("[ERROR] Timeout while executing forth. Resetting state\n");
             }
         } else {
@@ -97,7 +97,7 @@ impl AMForth {
         // Simpler version with no timeout
         let c_s = CString::new(s).expect("CString::new failed");
         unsafe {
-            amf_parse_string(self.parser, c_s.as_ptr());
+            sef_parse_string(self.parser, c_s.as_ptr());
         }
         */
     }
@@ -110,31 +110,31 @@ impl AMForth {
 }
 
 #[no_mangle]
-pub extern "C" fn amf_input() -> c_char {
+pub extern "C" fn sef_input() -> c_char {
     return 0;
 }
 
 #[no_mangle]
-pub extern "C" fn amf_output(c: u8) {
+pub extern "C" fn sef_output(c: u8) {
     let c_as_slice = &[c];
     let _ = stdout().write_all(c_as_slice);
     OUTPUT_STREAM.lock().unwrap().push(c);
 }
 
 #[no_mangle]
-pub extern "C" fn amf_init_io() {
+pub extern "C" fn sef_init_io() {
 }
 
 #[no_mangle]
-pub extern "C" fn amf_clean_io() {
+pub extern "C" fn sef_clean_io() {
 }
 
     //for b in unsafe { cstr.to_bytes() as &[i8] } {
 #[no_mangle]
-pub extern "C" fn amf_print_string(s: *const c_char) {
+pub extern "C" fn sef_print_string(s: *const c_char) {
     let cstr = unsafe { CStr::from_ptr(s) };
     for b in cstr.to_bytes() {
-        amf_output(*b);
+        sef_output(*b);
     }
     // Get copy-on-write Cow<'_, str>, then guarantee a freshly-owned String allocation
     //println!("{}", String::from_utf8_lossy(cstr.to_bytes()).to_string());
@@ -142,6 +142,6 @@ pub extern "C" fn amf_print_string(s: *const c_char) {
 
 fn send_string_to_output(s: &str) {
     let c_s = CString::new(s).expect("CString::new failed");
-    amf_print_string(c_s.as_ptr());
+    sef_print_string(c_s.as_ptr());
 }
 

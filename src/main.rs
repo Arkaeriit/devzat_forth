@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => "https://devzat.hackclub.com:5556".to_string(),
     };
 
-    let mut forth_state = am_forth::AMForth::init();
+    let mut forth_state = am_forth::SEForth::init();
 
     let auth_token = match std::env::var("PLUGIN_TOKEN") {
         Ok(token) => token,

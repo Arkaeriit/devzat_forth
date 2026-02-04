@@ -41,7 +41,7 @@ The plugin can execute code that allocate memory or take a lot of CPU time. When
 
 ## Notes to developer
 
-To compile this plugin, you need the static library `libseforthdvz.a`. The build script fetches and compiles it automatically.
+To compile this plugin, you need the static library `libseforthdvz.a`. The build script compiles it, but you need to run `git submodule update --init` before running `cargo build`.
 
 As running arbitrary code that is as low level as Forth in inherently unsafe, no effort have been made to write safe Rust. Thus, you might find in `src/forth.rs` some of the most horrendous Rust you ever saw.
 

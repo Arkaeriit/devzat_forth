@@ -17,15 +17,17 @@ lazy_static! {
 }
 
 extern "C" {
-    fn sef_init_parser() -> *mut c_void;
-    fn sef_parse_string(parser: *mut c_void, s: *const c_char);
-    //fn sef_clean_parser(parser: *mut c_void);
+    fn sef_init(state: *mut c_void);
+    fn sef_eval_string(state: *mut c_void, s: *const c_char);
+    fn malloc(size: usize) -> *mut c_void;
     fn cancellable_thread();
 }
 
+const STATE_SIZE: usize = (1 + ((40000000 / 8) + (200 / 8) + 1000 + 1000 + 100 + 17)) * 8;
+
 #[derive(Clone, Copy)]
 pub struct SEForth {
-    parser: *mut c_void,
+    state: *mut c_void,
 }
 
 const TIMEOUT_MILLIS: u64 = 10000;
@@ -33,24 +35,31 @@ const POLLING_STEPS_MILLIS: u64 = 10;
 
 impl SEForth {
     pub fn init() -> SEForth {
-        let mut state = SEForth{parser: unsafe {sef_init_parser()}};
-        state.parse_string(": 🥕 dup 0> if 1 swap 0 do over * loop swap drop else 2drop 1 then ;\n");
-        state.parse_string(": :carrot: 🥕 ;\n");
+        let mut state = SEForth{state: unsafe {malloc(STATE_SIZE)}};
+        unsafe {
+        sef_init(state.state);
+        }
+        state.run_default_code();
         state
     }
 
+    fn run_default_code(&mut self) {
+        self.parse_string(": 🥕 dup 0> if 1 swap 0 do over * loop swap drop else 2drop 1 then ;\n");
+        self.parse_string(": :carrot: 🥕 ;\n");
+    }
+
     pub fn parse_string(&mut self, s: &str) {
-        println!("Call to state '{:?}' with data '{}'.", self.parser, s);
+        println!("Call to state '{:?}' with data '{}'.", self.state, s);
         #[repr(C)]
         struct StateAndString {
-            parser: *mut c_void,
+            state: *mut c_void,
             string: *const c_char,
         }
 
         let mut running_thread: libc::pthread_t = 0;
         let c_s = CString::new(s).expect("CString::new failed");
         let mut thread_arguments = StateAndString{
-            parser: self.parser,
+            state: self.state,
             string: c_s.as_ptr()
         };
         let arg_ptr: *mut c_void = &mut thread_arguments as *mut _ as *mut c_void;
@@ -59,7 +68,7 @@ impl SEForth {
             let arg: &mut StateAndString = unsafe { &mut *(arg as *mut StateAndString) }; 
             unsafe {
                 cancellable_thread();
-                sef_parse_string(arg.parser, arg.string);
+                sef_eval_string(arg.state, arg.string);
             }
             *PTHREAD_RUNNING.lock().unwrap() = false;
             std::ptr::null_mut()
@@ -84,7 +93,9 @@ impl SEForth {
                 libc::pthread_cancel(running_thread);
                 libc::pthread_join(running_thread, std::ptr::null_mut());
                 //sef_clean_parser(self.parser); /* This is a memory leak but for some reason, the thread that should have been joined sometimes still write to the freed memory. This might not even be the worst abomination in this file. */
-                self.parser = sef_init_parser();
+                self.state = malloc(STATE_SIZE);
+                sef_init(self.state);
+                self.run_default_code();
                 send_string_to_output("[ERROR] Timeout while executing forth. Resetting state\n");
             }
         } else {
@@ -119,14 +130,6 @@ pub extern "C" fn sef_output(c: u8) {
     let c_as_slice = &[c];
     let _ = stdout().write_all(c_as_slice);
     OUTPUT_STREAM.lock().unwrap().push(c);
-}
-
-#[no_mangle]
-pub extern "C" fn sef_init_io() {
-}
-
-#[no_mangle]
-pub extern "C" fn sef_clean_io() {
 }
 
     //for b in unsafe { cstr.to_bytes() as &[i8] } {

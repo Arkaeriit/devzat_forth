@@ -21,6 +21,8 @@ extern "C" {
     fn sef_eval_string(state: *mut c_void, s: *const c_char);
     fn malloc(size: usize) -> *mut c_void;
     fn cancellable_thread();
+    fn sef_ready_to_run(state: *mut c_void) -> bool;
+    fn sef_restart(state: *mut c_void);
 }
 
 const STATE_SIZE: usize = (1 + ((40000000 / 8) + (200 / 8) + 1000 + 1000 + 100 + 17)) * 8;
@@ -50,6 +52,14 @@ impl SEForth {
 
     pub fn parse_string(&mut self, s: &str) {
         println!("Call to state '{:?}' with data '{}'.", self.state, s);
+
+        unsafe {
+            if !sef_ready_to_run(self.state) {
+                println!("Need to restart state.");
+                sef_restart(self.state);
+            }
+        }
+
         #[repr(C)]
         struct StateAndString {
             state: *mut c_void,

@@ -92,8 +92,6 @@ impl SEForth {
             unsafe {
                 libc::pthread_cancel(running_thread);
                 libc::pthread_join(running_thread, std::ptr::null_mut());
-                //sef_clean_parser(self.parser); /* This is a memory leak but for some reason, the thread that should have been joined sometimes still write to the freed memory. This might not even be the worst abomination in this file. */
-                self.state = malloc(STATE_SIZE);
                 sef_init(self.state);
                 self.run_default_code();
                 send_string_to_output("[ERROR] Timeout while executing forth. Resetting state\n");

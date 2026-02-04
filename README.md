@@ -2,7 +2,7 @@
 
 [Devzat](https://github.com/quackduck/devzat) is a chatroom imagined for developers. It makes sense to let them code directly on the chatroom. This plugin brings a Forth interpreter to the chatroom.
 
-The Forth interpreter is [ASC miniForth](https://github.com/Arkaeriit/ASCminiForth).
+The Forth interpreter is [SEForth](https://github.com/Arkaeriit/SEForth).
 
 ## In-chat usage
 
@@ -41,9 +41,9 @@ The plugin can execute code that allocate memory or take a lot of CPU time. When
 
 ## Notes to developer
 
-To compile this plugin, you need the static library `libamForth.a`. The build script fetches and compiles it automatically.
+To compile this plugin, you need the static library `libseforthdvz.a`. The build script fetches and compiles it automatically.
 
-As running arbitrary code that is as low level as Forth in inherently unsafe, no effort have been made to write safe Rust. Thus, you might find in `src/am_forth.rs` some of the most horrendous Rust you ever saw.
+As running arbitrary code that is as low level as Forth in inherently unsafe, no effort have been made to write safe Rust. Thus, you might find in `src/forth.rs` some of the most horrendous Rust you ever saw.
 
 ## Acknowledgment
 

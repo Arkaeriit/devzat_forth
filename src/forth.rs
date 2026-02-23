@@ -23,23 +23,26 @@ extern "C" {
     fn cancellable_thread();
     fn sef_ready_to_run(state: *mut c_void) -> bool;
     fn sef_restart(state: *mut c_void);
+    fn sef_register_block_file(state: *mut c_void, filename: *const c_char, number_fo_blocks: isize);
 }
 
 const STATE_SIZE: usize = (1 + ((40000000 / 8) + (200 / 8) + 1000 + 1000 + 100 + 17)) * 8;
 
 #[derive(Clone, Copy)]
-pub struct SEForth {
+pub struct SEForth<'a> {
     state: *mut c_void,
+    block_file: &'a str,
+    number_fo_blocks: isize,
 }
 
 const TIMEOUT_MILLIS: u64 = 10000;
 const POLLING_STEPS_MILLIS: u64 = 10;
 
-impl SEForth {
-    pub fn init() -> SEForth {
-        let mut state = SEForth{state: unsafe {malloc(STATE_SIZE)}};
+impl<'a> SEForth<'a> {
+    pub fn init(block_file: &'a str, number_fo_blocks: isize) -> SEForth<'a> {
+        let mut state = SEForth{state: unsafe {malloc(STATE_SIZE)}, block_file, number_fo_blocks};
         unsafe {
-        sef_init(state.state);
+            sef_init(state.state);
         }
         state.run_default_code();
         state
@@ -48,6 +51,12 @@ impl SEForth {
     fn run_default_code(&mut self) {
         self.parse_string(": 🥕 dup 0> if 1 swap 0 do over * loop swap drop else 2drop 1 then ;\n");
         self.parse_string(": :carrot: 🥕 ;\n");
+        if self.number_fo_blocks > 0 {
+            unsafe {
+                let c_s = CString::new(self.block_file).expect("CString::new failed");
+                sef_register_block_file(self.state, c_s.as_ptr(), self.number_fo_blocks);
+            }
+        }
     }
 
     pub fn parse_string(&mut self, s: &str) {

@@ -13,8 +13,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => "https://devzat.hackclub.com:5556".to_string(),
     };
 
-    let mut forth_state = forth::SEForth::init("/tmp/blocs", 100);
-
     let auth_token = match std::env::var("PLUGIN_TOKEN") {
         Ok(token) => token,
         Err(_) => panic!("Missing PLUGIN_TOKEN"),
@@ -35,6 +33,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => "/tmp/devzat_forth".to_string(),
     };
     let last_action_file = &last_action_file_str;
+
+    let number_of_blocks = match std::env::var("NUMBER_OF_BLOCKS") {
+        Ok(number) => number.parse::<isize>().unwrap(),
+        Err(_) => 0,
+    };
+
+    let block_file_str = match std::env::var("BLOCK_FILE") {
+        Ok(file) => file,
+        Err(_) => "/tmp/blocks".to_string(),
+    };
+    let block_file = &block_file_str;
+
+    let mut forth_state = forth::SEForth::init(block_file, number_of_blocks);
 
     let client = devzat_rs::Client::new(
         instance_host,
